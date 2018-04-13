@@ -4,6 +4,10 @@ html {
   color: #404040;
   padding: 0 8px;
   background: #f3f3f3;
+  box-sizing: border-box;
+}
+*, *::before, *::after {
+  box-sizing: inherit;
 }
 body {
   max-width: 1200px;
@@ -18,8 +22,7 @@ h1 {
   border-bottom: 2px solid #f65c51;
 }
 form {
-  border: 2px solid #eee;
-  padding: 24px;
+  padding: 24px 0;
 }
 form label {
   font-weight: bold;
@@ -30,7 +33,6 @@ form input {
   font-size: 16px;
   margin: 12px 0 24px 0;
   width: 100%;
-  box-sizing: border-box;
   border: 1px solid #ccc;
   background: white;
 }
@@ -38,7 +40,6 @@ form button {
   font-size: 14px;
   font-weight: bold;
   padding: 12px;
-  box-sizing: border-box;
   border: 1px solid #ccc;
   background: #eee;
   cursor: pointer;

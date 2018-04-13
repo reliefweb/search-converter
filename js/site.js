@@ -1,30 +1,136 @@
 (function () {
   'use strict';
 
+  // Base API url.
   const apiUrl = 'https://api.reliefweb.int/v1/';
 
-  // TODO: add other resources.
-  const resources = {
-    updates: {
+  // ReliefWeb rivers with pre-filter.
+  const paths = {
+    'headlines': {
       resource: 'reports',
-      fields: {
-        primary_country: ['PC', 'AND', 'primary_country.id'],
-        country: ['C', 'AND', 'country.id'],
-        source: ['S', 'AND', 'source.id'],
-        source_type: ['ST', 'OR', 'source.type.id'],
-        theme: ['T', 'AND', 'theme.id'],
-        format: ['F', 'OR', 'format.id'],
-        disaster: ['D', 'OR', 'disaster.id'],
-        disaster_type: ['DT', 'AND', 'disaster_type.id'],
-        vulnerable_groups: ['VG', 'OR', 'vulnerable_groups.id'],
-        language: ['L', 'OR', 'language.id'],
-        date: ['DO', 'AND', 'date.original'],
-        created: ['DA', 'AND', 'date.created'],
-        feature: ['FE', 'OR', 'feature.id']
+      filter: {
+        field: 'headline'
       }
+    },
+    'headlines/thumb': {
+      resource: 'reports',
+      filter: {
+        field: 'headline.image'
+      }
+    },
+    'updates': {
+      resource: 'reports'
+    },
+    'updates/no-thumb': {
+      resource: 'reports',
+      filter: {
+        field: 'format.id',
+        value: [12, 12570, 38974],
+        operator: 'OR',
+        negate: true
+      }
+    },
+    'maps': {
+      resource: 'reports',
+      filter: {
+        field: 'format.id',
+        value: [12, 12570, 38974],
+        operator: 'OR'
+      }
+    },
+    'disasters': {
+      resource: 'disasters'
+    },
+    'jobs': {
+      resource: 'jobs'
+    },
+    'taining': {
+      resource: 'training'
+    },
+    'taining/free': {
+      resource: 'training',
+      filter: {
+        field: 'cost',
+        value: 'free'
+      }
+    },
+    'taining/online': {
+      resource: 'training',
+      filter: {
+        field: 'format.id',
+        value: 4607
+      }
+    },
+    'taining/workshop': {
+      resource: 'training',
+      filter: {
+        field: 'type.id',
+        value: 4609
+      }
+    },
+    'taining/academic': {
+      resource: 'training',
+      filter: {
+        field: 'type.id',
+        value: 4610
+      }
+    },
+  };
+
+  // TODO: add other resources.
+  // API resources.
+  const resources = {
+    reports: {
+      primary_country: ['PC', 'AND', 'primary_country.id'],
+      country: ['C', 'AND', 'country.id'],
+      source: ['S', 'AND', 'source.id'],
+      source_type: ['ST', 'OR', 'source.type.id'],
+      theme: ['T', 'AND', 'theme.id'],
+      format: ['F', 'OR', 'format.id'],
+      disaster: ['D', 'OR', 'disaster.id'],
+      disaster_type: ['DT', 'AND', 'disaster_type.id'],
+      vulnerable_groups: ['VG', 'OR', 'vulnerable_groups.id'],
+      language: ['L', 'OR', 'language.id'],
+      date: ['DO', 'AND', 'date.original'],
+      created: ['DA', 'AND', 'date.created'],
+      feature: ['FE', 'OR', 'feature.id']
+    },
+    disasters: {
+      country: ['C', 'AND', 'country.id'],
+      type: ['DT', 'OR', 'type.id'],
+      status: ['SS', 'OR', 'status'],
+      date: ['DA', 'AND', 'date.created']
+    },
+    jobs: {
+      type: ['TY', 'OR', 'type.id'],
+      career_categories: ['CC', 'OR', 'career_categories.id'],
+      experience: ['E', 'OR', 'experience.id'],
+      theme: ['T', 'OR', 'theme.id'],
+      country: ['C', 'OR', 'country.id'],
+      source: ['S', 'OR', 'source.id'],
+      source_type: ['ST', 'OR', 'source.type.id'],
+      closing: ['DC', 'AND', 'date.closing'],
+      created: ['DA', 'AND', 'date.created']
+    },
+    training: {
+      type: ['TY', 'OR', 'type.id'],
+      career_categories: ['CC', 'OR', 'career_categories.id'],
+      format: ['F', 'AND', 'format.id'],
+      cost: ['CO', 'OR', 'cost'],
+      theme: ['T', 'OR', 'theme.id'],
+      country: ['C', 'OR', 'country.id'],
+      source: ['S', 'OR', 'source.id'],
+      training_language: ['TL', 'OR', 'training_language.id'],
+      created: ['DA', 'AND', 'date.created'],
+      start: ['DS', 'AND', 'date.start'],
+      end: ['DE', 'AND', 'date.end'],
+      registration: ['DR', 'AND', 'date.registration'],
+      language: ['L', 'OR', 'language.id'],
+      source_type: ['ST', 'OR', 'source.type.id']
     }
   };
 
+  // Advanced search operator.
   const operators = {
     '(': 'WITH',
     '!(': 'WITHOUT',
@@ -36,6 +142,7 @@
     '_': 'AND'
   };
 
+  // Advanced parsing pattern.
   const pattern = /(!?\(|\)[._]!?\(|[._])([A-Z]+)(\d+-\d*|-?\d+)/g;
 
   /**
@@ -48,7 +155,7 @@
         var month = parseInt(date.substr(4, 2), 10) - 1;
         var day = parseInt(date.substr(6, 2), 10) + index;
         var utc = Date.UTC(year, month, day, 0, 0, 0);
-        return (new Date(utc)).toISOString().substr(0, 10);
+        return (new Date(utc)).toISOString().replace('.000Z', '+00:00');
       }
       return '';
     });
@@ -58,13 +165,13 @@
   /**
    * Parse an advanced search query string into API filters.
    */
-  function parseAdvancedQuery(resource, query) {
+  function parseAdvancedQuery(fields, query) {
     if (!query) {
       return null;
     }
 
     // Map field shortcut to field info.
-    var mapping = Object.values(resource.fields).reduce((map, info) => {
+    var mapping = Object.values(fields).reduce((map, info) => {
       map[info[0]] = {field: info[2], date: info[2].indexOf('date') !== -1};
       return map;
     }, {});
@@ -157,22 +264,18 @@
 
     for (var i = 0, l = conditions.length; i < l; i++) {
       var condition = conditions[i];
-      var negation = condition.negate === true ? '1' : '0';
-      var field = condition.field + '#' + negation;
+      var field = condition.field;
       var value = condition.value;
 
-      // Nested conditions, skip.
-      if (condition.conditions) {
+      // Skip when there are nested conditions or the value is a range.
+      if (condition.conditions || typeof value === 'undefined' || (typeof value === 'object' && !Array.isArray(value))) {
         return conditions;
       }
 
-      if (Number.isInteger(value) || Array.isArray(value)) {
-        filters[field] = [].concat(filters[field] || [], value);
-      }
-    };
+      filters[field] = [].concat(filters[field] || [], value);
+    }
 
-    for (const [key, value] of Object.entries(filters)) {
-      var [field, negation] = key.split('#', 2);
+    for (const [field, value] of Object.entries(filters)) {
       var filter = {field: field};
       if (value.length === 1) {
         filter.value = value[0];
@@ -180,9 +283,6 @@
       else {
         filter.value = value;
         filter.operator = operator;
-      }
-      if (negation === '1') {
-        filter.negate = true;
       }
       result.push(filter);
     }
@@ -207,6 +307,9 @@
       }
       result = '(' + group.join(operator) + ')';
     }
+    else if (!filter.value) {
+      result = '_exists_:' + filter.field;
+    }
     else {
       var value = filter.value;
       if (Array.isArray(value)) {
@@ -214,14 +317,16 @@
       }
       // Date.
       else if (typeof value === 'object') {
-        if (!value.from) {
-          value = '<' + value.to;
+        var from = value.from ? value.from.substr(0, 10) : '';
+        var to = value.to ? value.to.substr(0, 10) : '';
+        if (!from) {
+          value = '<' + to;
         }
-        else if (!value.to) {
-          value = '>=' + value.from;
+        else if (!to) {
+          value = '>=' + from;
         }
         else {
-          value = '[' + value.from + ' TO ' + value.to + '}';
+          value = '[' + from + ' TO ' + to + '}';
         }
       }
 
@@ -233,9 +338,8 @@
   /**
    * Convert facets parameters to an API filter.
    */
-  function convertFacets(resource, params) {
+  function convertFacets(fields, params) {
     var conditions = [];
-    var fields = resource.fields;
 
     for (var [key, value] of params.entries()) {
       if (fields.hasOwnProperty(key)) {
@@ -295,7 +399,7 @@
       'query[value]=' + encodeURIComponent(query)
     ].join('&');
 
-    return apiUrl + resource.resource + '?' + params;
+    return apiUrl + resource + '?' + params;
   }
 
   /**
@@ -303,7 +407,6 @@
    */
   function getJsonPayload(search, filter, appname) {
     var payload = {
-      appname: appname,
       profile: 'list',
       preset: 'latest',
     };
@@ -330,7 +433,7 @@
   function updateResults(results) {
     for (const [key, value]  of Object.entries(results)) {
       var container = document.getElementById('results-' + key);
-      var content = document.createTextNode(value);
+      var content = document.createTextNode(value || '');
       if (!container.firstChild) {
         container.appendChild(content);
       }
@@ -338,6 +441,13 @@
         container.replaceChild(content, container.firstChild);
       }
     }
+  }
+
+  /**
+   * Remove the result of the conversion/
+   */
+  function resetResults() {
+    updateResults({query: '', url: '', payload: ''});
   }
 
   /**
@@ -356,17 +466,22 @@
    */
   function convertToAPI(url) {
     if (!url) {
+      resetResults();
       return;
     }
 
     var url = new URL(url);
     var params = url.searchParams;
-    var resource = resources[url.pathname.replace(/^[/]+|[/]+$/g, '')];
+    var path = paths[url.pathname.replace(/^[/]+|[/]+$/g, '')];
 
     // Skip if the resource couldn't be determined.
-    if (!resource) {
+    if (!path) {
+      resetResults();
       return;
     }
+
+    var resource = path.resource;
+    var fields = resources[resource];
 
     // Application name.
     var appname = getAppName();
@@ -374,12 +489,13 @@
     // Search query.
     var search = (params.get('search') || '').trim();
 
-    // Advanced search and facets combined filter.
+    // Advanced search, facets and resource pre-filter combined filter.
     var filter = optimizeFilter({
       operator: 'AND',
       conditions: [
-        parseAdvancedQuery(resource, params.get('advanced-search') || ''),
-        convertFacets(resource, params)
+        parseAdvancedQuery(fields, params.get('advanced-search') || ''),
+        convertFacets(fields, params),
+        path.filter,
       ].filter(item => item)
     });
 
@@ -396,8 +512,9 @@
     updateResults({query, url, payload});
   }
 
+  var form = document.getElementById('to-api-form');
   // Convert the search url on submit.
-  document.getElementById('to-api-form').addEventListener('submit', event => {
+  form.addEventListener('submit', event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -409,6 +526,8 @@
 
     return false;
   });
+  // Reset the results when the form is resetted.
+  form.addEventListener('reset', resetResults);
 
   // Initialize the fields and convert if there is a search url.
   var params = (new URL(window.location.href)).searchParams;
