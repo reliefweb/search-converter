@@ -44,31 +44,31 @@
     'jobs': {
       resource: 'jobs'
     },
-    'taining': {
+    'training': {
       resource: 'training'
     },
-    'taining/free': {
+    'training/free': {
       resource: 'training',
       filter: {
         field: 'cost',
         value: 'free'
       }
     },
-    'taining/online': {
+    'training/online': {
       resource: 'training',
       filter: {
         field: 'format.id',
         value: 4607
       }
     },
-    'taining/workshop': {
+    'training/workshop': {
       resource: 'training',
       filter: {
         field: 'type.id',
         value: 4609
       }
     },
-    'taining/academic': {
+    'training/academic': {
       resource: 'training',
       filter: {
         field: 'type.id',
@@ -290,7 +290,7 @@
   }
 
   /**
-   * Return the query string represenation of an API filter.
+   * Return the query string representation of an API filter.
    */
   function stringifyFilter(filter) {
     if (!filter) {
@@ -363,7 +363,7 @@
   }
 
   /**
-   * Remove excessive outer parantheses.
+   * Remove excessive outer parentheses.
    */
   function trimFilter(filter) {
     return filter.indexOf('(') === 0 ? filter.substr(1, filter.length - 2) : filter;
@@ -444,7 +444,7 @@
   }
 
   /**
-   * Remove the result of the conversion/
+   * Remove the result of the conversion.
    */
   function resetResults() {
     updateResults({query: '', url: '', payload: ''});
