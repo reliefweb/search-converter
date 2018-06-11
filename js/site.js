@@ -92,13 +92,11 @@
       vulnerable_groups: ['VG', 'OR', 'vulnerable_groups.id'],
       language: ['L', 'OR', 'language.id'],
       date: ['DO', 'AND', 'date.original'],
-      created: ['DA', 'AND', 'date.created'],
-      feature: ['FE', 'OR', 'feature.id']
+      created: ['DA', 'AND', 'date.created']
     },
     disasters: {
       country: ['C', 'AND', 'country.id'],
       type: ['DT', 'OR', 'type.id'],
-      status: ['SS', 'OR', 'status'],
       date: ['DA', 'AND', 'date.created']
     },
     jobs: {
