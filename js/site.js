@@ -393,11 +393,13 @@
     var params = [
       'appname=' + encodeURIComponent(appname),
       'profile=list',
-      'preset=latest',
-      'query[value]=' + encodeURIComponent(query)
-    ].join('&');
+      'preset=latest'
+    ];
+    if (query) {
+      params.push('query[value]=' + encodeURIComponent(query));
+    }
 
-    return apiUrl + resource + '?' + params;
+    return apiUrl + resource + '?' + params.join('&');
   }
 
   /**
