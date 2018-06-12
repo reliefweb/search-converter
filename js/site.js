@@ -114,7 +114,6 @@
       type: ['TY', 'OR', 'type.id'],
       career_categories: ['CC', 'OR', 'career_categories.id'],
       format: ['F', 'AND', 'format.id'],
-      cost: ['CO', 'OR', 'cost'],
       theme: ['T', 'OR', 'theme.id'],
       country: ['C', 'OR', 'country.id'],
       source: ['S', 'OR', 'source.id'],
