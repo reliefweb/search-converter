@@ -44,31 +44,31 @@
     'jobs': {
       resource: 'jobs'
     },
-    'taining': {
+    'training': {
       resource: 'training'
     },
-    'taining/free': {
+    'training/free': {
       resource: 'training',
       filter: {
         field: 'cost',
         value: 'free'
       }
     },
-    'taining/online': {
+    'training/online': {
       resource: 'training',
       filter: {
         field: 'format.id',
         value: 4607
       }
     },
-    'taining/workshop': {
+    'training/workshop': {
       resource: 'training',
       filter: {
         field: 'type.id',
         value: 4609
       }
     },
-    'taining/academic': {
+    'training/academic': {
       resource: 'training',
       filter: {
         field: 'type.id',
@@ -92,13 +92,11 @@
       vulnerable_groups: ['VG', 'OR', 'vulnerable_groups.id'],
       language: ['L', 'OR', 'language.id'],
       date: ['DO', 'AND', 'date.original'],
-      created: ['DA', 'AND', 'date.created'],
-      feature: ['FE', 'OR', 'feature.id']
+      created: ['DA', 'AND', 'date.created']
     },
     disasters: {
       country: ['C', 'AND', 'country.id'],
       type: ['DT', 'OR', 'type.id'],
-      status: ['SS', 'OR', 'status'],
       date: ['DA', 'AND', 'date.created']
     },
     jobs: {
@@ -116,7 +114,6 @@
       type: ['TY', 'OR', 'type.id'],
       career_categories: ['CC', 'OR', 'career_categories.id'],
       format: ['F', 'AND', 'format.id'],
-      cost: ['CO', 'OR', 'cost'],
       theme: ['T', 'OR', 'theme.id'],
       country: ['C', 'OR', 'country.id'],
       source: ['S', 'OR', 'source.id'],
@@ -290,7 +287,7 @@
   }
 
   /**
-   * Return the query string represenation of an API filter.
+   * Return the query string representation of an API filter.
    */
   function stringifyFilter(filter) {
     if (!filter) {
@@ -363,7 +360,7 @@
   }
 
   /**
-   * Remove excessive outer parantheses.
+   * Remove excessive outer parentheses.
    */
   function trimFilter(filter) {
     return filter.indexOf('(') === 0 ? filter.substr(1, filter.length - 2) : filter;
@@ -395,11 +392,13 @@
     var params = [
       'appname=' + encodeURIComponent(appname),
       'profile=list',
-      'preset=latest',
-      'query[value]=' + encodeURIComponent(query)
-    ].join('&');
+      'preset=latest'
+    ];
+    if (query) {
+      params.push('query[value]=' + encodeURIComponent(query));
+    }
 
-    return apiUrl + resource + '?' + params;
+    return apiUrl + resource + '?' + params.join('&');
   }
 
   /**
@@ -444,7 +443,7 @@
   }
 
   /**
-   * Remove the result of the conversion/
+   * Remove the result of the conversion.
    */
   function resetResults() {
     updateResults({query: '', url: '', payload: ''});
