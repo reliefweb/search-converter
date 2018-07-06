@@ -38,8 +38,14 @@
         operator: 'OR'
       }
     },
+    'countries': {
+      resource: 'countries'
+    },
     'disasters': {
       resource: 'disasters'
+    },
+    'organizations': {
+      resource: 'sources'
     },
     'jobs': {
       resource: 'jobs'
@@ -74,11 +80,12 @@
         field: 'type.id',
         value: 4610
       }
-    },
+    }
   };
 
-  // TODO: add other resources.
   // API resources.
+  //
+  // The format is [shortcut, operator, API field, fixed values (optional)].
   const resources = {
     reports: {
       primary_country: ['PC', 'AND', 'primary_country.id'],
@@ -92,12 +99,21 @@
       vulnerable_groups: ['VG', 'OR', 'vulnerable_groups.id'],
       language: ['L', 'OR', 'language.id'],
       date: ['DO', 'AND', 'date.original'],
-      created: ['DA', 'AND', 'date.created']
+      created: ['DA', 'AND', 'date.created'],
+      feature: ['FE', 'OR', 'feature.id']
+    },
+    countries: {
+      status: ['SS', 'OR', 'status', ['current', 'normal']]
     },
     disasters: {
       country: ['C', 'AND', 'country.id'],
       type: ['DT', 'OR', 'type.id'],
+      status: ['SS', 'OR', 'status', ['current', 'past']],
       date: ['DA', 'AND', 'date.created']
+    },
+    organizations: {
+      country: ['C', 'OR', 'country.id'],
+      source_type: ['T', 'OR', 'type.id']
     },
     jobs: {
       type: ['TY', 'OR', 'type.id'],
@@ -114,6 +130,7 @@
       type: ['TY', 'OR', 'type.id'],
       career_categories: ['CC', 'OR', 'career_categories.id'],
       format: ['F', 'AND', 'format.id'],
+      cost: ['CO', 'OR', 'cost', ['fee-based', 'free']],
       theme: ['T', 'OR', 'theme.id'],
       country: ['C', 'OR', 'country.id'],
       source: ['S', 'OR', 'source.id'],
@@ -179,8 +196,8 @@
     };
     var filter = null;
 
-    var match;
-    while (match = pattern.exec(query)) {
+    var match = null;
+    while ((match = pattern.exec(query)) !== null) {
       var operator = operators[match[1]];
       var info = mapping[match[2]];
       var field = info.field;
@@ -340,20 +357,32 @@
 
     for (var [key, value] of params.entries()) {
       if (fields.hasOwnProperty(key)) {
-        var [shortcut, operator, field] = fields[key];
+        var [shortcut, operator, field, values] = fields[key];
 
+        // Date field - parse range format.
         if (field.indexOf('date') !== -1) {
           value = parseDateRange(value);
         }
+        // Term reference fields - ensure the term id is an integer.
+        else if (field.substr(-3) === '.id') {
+          value = value.split('.').map(item => parseInt(item, 10)).filter(item => !isNaN(item));
+        }
+        // Fixed values fields - ensure the value(s) are in the list.
+        else if (values) {
+          value = value.split('.').filter(values.includes);
+        }
+        // Skip unrecognized fields.
         else {
-          value = value.split('.').map(item => parseInt(item, 10));
+          continue;
         }
 
-        conditions.push({
-          field: field,
-          operator: operator,
-          value: value,
-        });
+        if (value) {
+          conditions.push({
+            field: field,
+            operator: operator,
+            value: value
+          });
+        }
       }
     }
     return conditions.length ? {conditions: conditions, operator: 'AND'} : null;
@@ -407,7 +436,7 @@
   function getJsonPayload(search, filter, appname) {
     var payload = {
       profile: 'list',
-      preset: 'latest',
+      preset: 'latest'
     };
     if (search) {
       payload.query = {value: search};
@@ -430,7 +459,7 @@
    * Update the result of the conversion.
    */
   function updateResults(results) {
-    for (const [key, value]  of Object.entries(results)) {
+    for (const [key, value] of Object.entries(results)) {
       var container = document.getElementById('results-' + key);
       var content = document.createTextNode(value || '');
       if (!container.firstChild) {
@@ -494,7 +523,7 @@
       conditions: [
         parseAdvancedQuery(fields, params.get('advanced-search') || ''),
         convertFacets(fields, params),
-        path.filter,
+        path.filter
       ].filter(item => item)
     });
 
