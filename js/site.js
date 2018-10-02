@@ -1,6 +1,8 @@
 (function () {
   'use strict';
 
+  var counter = 0;
+
   // Base API url.
   const apiUrl = 'https://api.reliefweb.int/v1/';
 
@@ -469,13 +471,16 @@
         container.replaceChild(content, container.firstChild);
       }
     }
+
+    addTryButtons();
   }
 
   /**
    * Remove the result of the conversion.
    */
   function resetResults() {
-    updateResults({query: '', url: '', payload: ''});
+    updateResults({resource: '', query: '', url: '', payload: ''});
+    removeTryButtons();
   }
 
   /**
@@ -537,8 +542,153 @@
     var payload = getJsonPayload(search, filter, appname);
 
     // Update the results with the conversion.
-    updateResults({query, url, payload});
+    updateResults({resource, query, url, payload});
   }
+
+  // Call api and display results.
+  function showResults(e) {
+    var apiCall = e.target.parentNode;
+    var url, options;
+    for (var i=0; i<apiCall.children.length; i++) {
+      // Check for GET request.
+      if (apiCall.children[i].id === 'results-url') {
+        url = apiCall.children[i].innerText;
+        options = {method: "GET"};
+      }
+      // Check for POST request.
+      if (apiCall.children[i].id === 'results-payload') {
+        url  = 'https://api.reliefweb.int/v1/' + 'reports' + '?appname=' + getAppName();
+        options = {
+          method: "POST",
+          body: apiCall.children[i].innerText
+        };
+      }
+      // Get result div, if there is one.
+      if (apiCall.children[i].className === 'result') {
+        var result = apiCall.children[i];
+      }
+      // Get the try button so we can adjust text later.
+      if (apiCall.children[i].className === 'try') {
+        var tryButton = apiCall.children[i];
+      }
+    }
+    // Create result div if needed.
+    if (!result) {
+      result = document.createElement('div');
+      result.setAttribute('class', 'result');
+      apiCall.appendChild(result);
+    }
+    // Check call is going to api.reliefweb.int
+    if (url.indexOf('https://api.reliefweb.int/v1') !== 0) {
+      result.innerHTML = "<strong>Error:</strong> The call must be made to <code>https://api.reliefweb.int/v1</code>";
+      return;
+    }
+
+    // Query the API.
+    fetch(url, options)
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(json) {
+      var resultStatus = "success",
+        copyType = "API Url",
+        copyText = url,
+        html = '<button id="hideButton-' + counter + '" class="form-button">Hide results</button>';
+      if (options.method === 'POST') {
+        copyType = "JSON payload";
+        copyText = options.body;
+      }
+      var reTry = 'Try again (after editing ' + copyType + ')';
+      if (json.error) {
+        resultStatus = "error";
+        reTry = 'Error: "' + json.error.message + '" Adjust request and click to try again';
+      }
+      html += '<button id="copyButton-' + counter + '" class="form-button">Copy ' + copyType + '</button>';
+      html += '<pre class="' + resultStatus + '">';
+      html += '<code>' + JSON.stringify(json, null, '\t') + '</code>';
+      html += '</pre>';
+
+      // Add result.
+      result.innerHTML = html;
+
+      // Add functionality to buttons..
+      document.getElementById("hideButton-" + counter).addEventListener('click', function() {
+        this.parentElement.remove();
+        tryButton.innerText = 'Try it out';
+      });
+      document.getElementById("copyButton-" + counter).addEventListener('click', function() {copyToClipboard(copyText)});
+
+      // Change the try text.
+      tryButton.innerText = reTry;
+
+      counter++;
+    });
+  }
+
+  // Submit queries on return for url fields.
+  function handleUrlReturns(e) {
+    if (e.keyCode === 13) {
+      showResults(e);
+    }
+  }
+
+  // Make sure returns don't create divs in contenteditable JSON.
+  // https://stackoverflow.com/questions/6024594
+  function handleJsonReturns(e) {
+    if (e.keyCode === 13) {
+      if (window.getSelection) {
+        var selection = window.getSelection(),
+            range = selection.getRangeAt(0),
+            br = document.createElement("br");
+        range.deleteContents();
+        range.insertNode(br);
+        range.setStartAfter(br);
+        range.setEndAfter(br);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        e.preventDefault();
+      }
+    }
+  }
+
+  // Copy works on input elements: need to clone the text to a hidden textarea.
+  function copyToClipboard(text) {
+    var copyItem = document.createElement( "textarea" );
+    copyItem.style.position = 'fixed';
+    copyItem.value = text;
+    document.body.appendChild(copyItem);
+    copyItem.select();
+    document.execCommand("copy");
+    copyItem.remove();
+  }
+
+  // Add 'try it out' buttons and handlers to all API calls.
+  function addTryButtons() {
+    var calls = document.getElementsByClassName('api-call');
+    for (var i=0; i<calls.length; i++) {
+      if (calls[i].children[1].innerText === "") {
+        return;
+      }
+      var tryIt = document.createElement('button');
+      tryIt.setAttribute('class', 'try');
+      tryIt.innerText = 'Try it out';
+      tryIt.addEventListener('click', showResults);
+      calls[i].appendChild(tryIt);
+    }
+  }
+
+  // Remove 'try it out' buttons.
+  function removeTryButtons() {
+    var trys = document.getElementsByClassName('try');
+    while (trys.length > 0) {
+      trys[0].remove();
+    }
+  }
+
+  // Handle returns in contenteditable fields.
+  document.getElementById('results-url').addEventListener('keydown', handleUrlReturns);
+  document.getElementById('results-payload').addEventListener('keydown', handleJsonReturns);
 
   var form = document.getElementById('to-api-form');
   // Convert the search url on submit.
