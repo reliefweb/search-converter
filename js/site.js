@@ -452,7 +452,7 @@
    */
   function getAppName() {
     var appname = document.getElementById('appname').value || '';
-    return appname.replace(/[^a-z._@-]/gi, '') || 'rw-search-converter';
+    return appname.trim() || 'rw-search-converter';
   }
 
   /**
