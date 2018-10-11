@@ -433,7 +433,7 @@
   /**
    * Get the JSON payload from the converted search and filter.
    */
-  function getJsonPayload(search, filter, appname) {
+  function getJsonPayload(search, filter) {
     var payload = {
       profile: 'list',
       preset: 'latest'
@@ -452,7 +452,7 @@
    */
   function getAppName() {
     var appname = document.getElementById('appname').value || '';
-    return appname.replace(/[^a-z._-]/gi, '') || 'rw-search-converter';
+    return appname.trim() || 'rw-search-converter';
   }
 
   /**
@@ -531,10 +531,10 @@
     var query = getQueryString(search, filter);
 
     // API url.
-    var url = getApiUrl(resource, query, document.getElementById('appname').value);
+    var url = getApiUrl(resource, query, appname);
 
     // JSON payload.
-    var payload = getJsonPayload(search, filter, appname);
+    var payload = getJsonPayload(search, filter);
 
     // Update the results with the conversion.
     updateResults({query, url, payload});
