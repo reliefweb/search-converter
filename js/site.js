@@ -272,7 +272,7 @@
   /**
    * Combine simple filter conditions to shorten the filters.
    */
-  function combineConditions(operator, conditions) {
+  function combineConditions(operator = 'AND', conditions) {
     var filters = {};
     var result = [];
 
@@ -281,16 +281,35 @@
       var field = condition.field;
       var value = condition.value;
 
-      // Skip when there are nested conditions or the value is a range.
-      if (condition.conditions || typeof value === 'undefined' || (typeof value === 'object' && !Array.isArray(value))) {
-        return conditions;
+      // Nested conditions - flatten the condition's conditions.
+      if (condition.conditions) {
+        condition.conditions = combineConditions(condition.operator, condition.conditions);
+        result.push(condition);
       }
-
-      filters[field] = [].concat(filters[field] || [], value);
+      // Existence filter - keep as is.
+      else if (typeof value === 'undefined') {
+        result.push(condition);
+      }
+      // Range filter - keep as is.
+      else if (typeof value === 'object' && !Array.isArray(value)) {
+         result.push(condition);
+      }
+      // Different operator or negated condition -  keep as is.
+      else if ((typeof condition.operator !== 'undefined' && condition.operator !== operator) || condition.negate) {
+        result.push(condition);
+      }
+      else {
+        // Store the values for the field to combine later.
+        filters[field] = [].concat(filters[field] || [], value);
+      }
     }
 
-    for (const [field, value] of Object.entries(filters)) {
+    for (var [field, value] of Object.entries(filters)) {
       var filter = {field: field};
+      // Ensure there are only unique values.
+      if (Array.isArray(value)) {
+        value = [... new Set(value)];
+      }
       if (value.length === 1) {
         filter.value = value[0];
       }
