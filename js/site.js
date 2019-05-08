@@ -444,6 +444,7 @@
     ];
     if (query) {
       params.push('query[value]=' + encodeURIComponent(query));
+      params.push('query[operator]=AND');
     }
 
     return apiUrl + resource + '?' + params.join('&');
@@ -458,7 +459,7 @@
       preset: 'latest'
     };
     if (search) {
-      payload.query = {value: search};
+      payload.query = {value: search, operator: 'AND'};
     }
     if (filter) {
       payload.filter = filter;
