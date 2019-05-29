@@ -440,7 +440,8 @@
     var params = [
       'appname=' + encodeURIComponent(appname),
       'profile=list',
-      'preset=latest'
+      'preset=latest',
+      'slim=1'
     ];
     if (query) {
       params.push('query[value]=' + encodeURIComponent(query));
