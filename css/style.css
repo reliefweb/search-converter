@@ -36,7 +36,7 @@ form input {
   border: 1px solid #ccc;
   background: white;
 }
-form button {
+button {
   font-size: 14px;
   font-weight: bold;
   padding: 12px;
@@ -46,12 +46,15 @@ form button {
   text-transform: uppercase;
 
 }
-form button + button {
+button + button {
   margin-left: 12px;
 }
-form button:hover,
-form button:active {
+button:hover,
+button:active {
   background: #ddd;
+}
+.result button {
+  margin-top: 12px;
 }
 pre {
   display: block;
@@ -59,4 +62,10 @@ pre {
   padding: 24px;
   word-wrap: break-word;
   white-space: pre-wrap;
+}
+pre.success {
+  background: #f3f3bb;
+}
+pre.error {
+  background: #f3bbbb;
 }
