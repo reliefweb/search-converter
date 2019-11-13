@@ -292,7 +292,7 @@
       }
       // Range filter - keep as is.
       else if (typeof value === 'object' && !Array.isArray(value)) {
-         result.push(condition);
+        result.push(condition);
       }
       // Different operator or negated condition -  keep as is.
       else if ((typeof condition.operator !== 'undefined' && condition.operator !== operator) || condition.negate) {
@@ -396,11 +396,20 @@
         }
 
         if (value) {
-          conditions.push({
-            field: field,
-            operator: operator,
-            value: value
-          });
+          // If there is only 1 value, simplify the filter.
+          if (Array.isArray(value) && value.length === 1) {
+            conditions.push({
+              field: field,
+              value: value[0]
+            });
+          }
+          else {
+            conditions.push({
+              field: field,
+              operator: operator,
+              value: value
+            });
+          }
         }
       }
     }
