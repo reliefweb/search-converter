@@ -108,7 +108,7 @@
     disasters: {
       country: ['C', 'AND', 'country.id'],
       type: ['DT', 'OR', 'type.id'],
-      status: ['SS', 'OR', 'status', ['current', 'past']],
+      status: ['SS', 'OR', 'status', ['alert', 'current', 'past']],
       date: ['DA', 'AND', 'date.created']
     },
     organizations: {
@@ -388,7 +388,7 @@
         }
         // Fixed values fields - ensure the value(s) are in the list.
         else if (values) {
-          value = value.split('.').filter(values.includes);
+          value = value.split('.').filter(item => values.includes(item));
         }
         // Skip unrecognized fields.
         else {
