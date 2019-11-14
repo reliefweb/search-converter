@@ -113,6 +113,8 @@
     },
     organizations: {
       country: ['C', 'OR', 'country.id'],
+      // Same as country.
+      region: ['C', 'OR', 'country.id'],
       source_type: ['T', 'OR', 'type.id']
     },
     jobs: {
@@ -121,6 +123,8 @@
       experience: ['E', 'OR', 'experience.id'],
       theme: ['T', 'OR', 'theme.id'],
       country: ['C', 'OR', 'country.id'],
+      // Same as country.
+      region: ['C', 'OR', 'country.id'],
       source: ['S', 'OR', 'source.id'],
       source_type: ['ST', 'OR', 'source.type.id'],
       closing: ['DC', 'AND', 'date.closing'],
@@ -133,6 +137,8 @@
       cost: ['CO', 'OR', 'cost', ['fee-based', 'free']],
       theme: ['T', 'OR', 'theme.id'],
       country: ['C', 'OR', 'country.id'],
+      // Same as country.
+      region: ['C', 'OR', 'country.id'],
       source: ['S', 'OR', 'source.id'],
       training_language: ['TL', 'OR', 'training_language.id'],
       created: ['DA', 'AND', 'date.created'],
