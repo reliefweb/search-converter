@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr" >
 <head>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-82210237-2"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-82210237-2');
-  </script>
-
   <meta charset="utf-8">
   <title>ReliefWeb Search Converter</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
@@ -20,41 +11,11 @@
   <main>
     <h1>ReliefWeb - Search Converter</h1>
 
-    <section>
-      <h2>Convert to API query</h2>
-      <p>Convert a search query on <a href="https://reliefweb.int" rel="noopener" target="_blank">reliefweb.int</a> to an API query (see <a href="https://apidoc.rwlabs.org" rel="noopener" target="_blank">API documentation</a>).</p>
-
-      <form id="to-api-form">
-        <label for="appname">Application name</label>
-        <input type="text" name="appname" id="appname" placeholder="Your application name or site URL" required>
-
-        <label for="search-url">Search URL</label>
-        <input type="text" name="search-url" id="search-url" placeholder="Search URL on reliefweb.int" required>
-
-        <button type="submit">Convert</button>
-        <button type="reset">Reset</button>
-      </form>
-    </section>
-
-    <section id="results">
-      <h2>Results</h2>
-      <div>
-        <h3>Query String</h3>
-        <pre id="results-query"></pre>
-      </div>
-
-      <div>
-        <h3>API Url</h3>
-        <pre id="results-url"></pre>
-      </div>
-
-      <div>
-        <h3>JSON payload</h3>
-        <pre id="results-payload"></pre>
-      </div>
-    </section>
+    <p>The search converter has moved to <a id="converter-url" href="https://reliefweb.int/search/converter">https://reliefweb.int/search/converter</a></p>
+    <script>
+      var params = (new URL(window.location.href)).searchParams;
+      document.getElementById('converter-url').href += '?' + params.toString();
+    </script>
   </main>
-
-  <script src="js/site.js"></script>
 </body>
 </html>
